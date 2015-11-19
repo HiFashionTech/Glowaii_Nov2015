@@ -1,0 +1,233 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1265\cocoasubrtf210
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+\margl1440\margr1440\vieww10460\viewh14820\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+
+\f0\fs24 \cf0 NeoEfx\
+\
+Design of a class to do color efx on one or more NeoPixel strips or chains of devices without using delay()\
+\
+eg\'85\
+void colorWipe(uint32_t c, uint8_t wait) \{\
+  for(uint16_t i=0; i<strip.numPixels(); i++) \{\
+      strip.setPixelColor(i, c);\
+      strip.show();\
+      delay(wait);\
+  \}\
+\}\
+\
+void rainbow(uint8_t wait) \{\
+  uint16_t i, j;\
+\
+  for(j=0; j<256; j++) \{\
+    for(i=0; i<strip.numPixels(); i++) \{\
+      strip.setPixelColor(i, Wheel((i+j) & 255));\
+    \}\
+    strip.show();\
+    delay(wait);\
+  \}\
+\
+\
+Basic NeoEfx\'85\
+Class variables/methods\
+  currTime, lastTime\
+  updateTime()\
+\
+has variety of local variables\
+  pin, numberPixels  (ref a NeoPixel strip)\
+  timeStep\
+\
+And a NeoWindow \'85 defines a window into a NeoPixel Strip\
+class NeoWindow\
+	NeoPixel *strip // the strip I belong to\
+	NeoStrip *strip // the strip I belong to\
+	int startPixel\
+	int numPixels\
+	int endPixel\
+	NeoWindow(strip, start, numP)\
+	\
+// do we really need NeoEffect.  could put these as class \
+//////class NeoEffect\
+	//neoWindow *window\
+	//frameTime\
+	cursor\
+\
+	classVar currTime\
+	classVar lastTime\
+	classVar diffTime\
+	classFunc updateTime()\
+\
+/////// and these are the effects\'85 they are functions of the NeoWindow\
+// so instead of a efx class or set of classes with\'85\
+	wipe(window, frameTime, color)\
+	rainbow(window, frameTime)\
+	larson(window, frameTime, color, len)\
+\
+/// we have functions of NeoWindow:\
+	wipe_begin(frameTime, color)\
+	rainbow_begin(frameTime)\
+	larson_begin( frameTime, color, len)\
+	pong_begin(color)\
+\
+	wipe_update()\
+	rainbow_update()\
+	larson_update()\
+	pong_update()\
+\
+\
+wipe_begin(color, frameTime\
+     retain color in instance variable\
+     retain frameTime in instance variable\
+\
+wipe_update()\
+	if (frameTime < diffTime)\
+		// do the effect\
+		\
+// if we are using NeoPixel\'85\
+//Adafruit_NeoPixel pixStrip1 = Adafruit_NeoPixel(60, STRIP1_PIN, NEO_GRB + NEO_KHZ800);\
+//Adafruit_NeoPixel pixStrip2 = Adafruit_NeoPixel(60, STRIP2_PIN, NEO_GRB + NEO_KHZ800);\
+\
+\
+class NeoStrip :: AdaFruit_NeoPixel\
+\{\
+	boolean stripChanged = false;\
+	void setStripChanged();\
+	void clearStripChanged();\
+	void getStripChanged();\
+\
+\}\
+\
+NeoStrip strip1 = NeoStrip(60, STRIP1_PIN, NEO_GRB + NEO_KHZ800);\
+NeoStrip strip2 = NeoStrip(60, STRIP2_PIN, NEO_GRB + NEO_KHZ800);\
+\
+NeoWindow ring1 = NeoWindow(strip1, Ring1_Start, Ring1_Size);\
+NeoWindow ring2 = NeoWindow(strip1, Ring2_Start, Ring2_Size);\
+\
+NeoWindow ring4 = NeoWindow(strip2, Ring4_Start, Ring4_Size)\
+\
+setup()\
+\{\
+	// might be better to use setPixel  or simlar NeoPixel level floodFill\
+	ring1.startFillEfx(black);\
+	ring2.startFillEfx(white);\
+	ring4.startFillEfx(black);\
+\}\
+\
+loop()\
+\{\
+	NeoWindow.updateTime(); // class function updates class variables\
+\
+       // handle inputs that change effects \
+	if (button1)\
+		ring1.startPongEfx(green, 20)\
+		ring2.startPongEfx(red, 50)\
+		ring4.startWipeEfx(color, speed )\
+\
+	if (button2)  /// use index but this doesn\'92t allow for different numbers of parameters\
+		ring1.setEfx(PongEFx)\
+		ring2.setEfx(PongEFx)\
+		ring4.setEfx(WipeEfx)\
+\
+	if (distanceSensor.TheyTooClose())\
+		ring1.larson_begin()\
+\
+	// now update the rings\
+	ring1.update()\
+	ring2.update()\
+\
+	ring3.update()\
+\
+	// and show the strips\
+//	if (ring1.stripChanged\
+// shoots how do we determine if the stripChanged?\
+	if (ring1.stripChanged || ring2.stripChanged)\
+		strip1.show()\
+	if (ring4.stripChanged)\
+		strip2.show()\
+	// if NeoStrip overloads show, testing for stripChanged internally\
+	strip1.show()\
+	strip2.show()\
+\}\
+\
+\
+\
+//// revisit definition/declartion of class NeoWindow\
+\
+class NeoWindow \
+\{\
+	classVar currTime\
+	classFunc updateTime()\
+	// class variable set by instances if they changed strip\
+	classVar boolean stripChanged; // cleared in updateTime(), set by instances\
+\
+\
+/// Instance vars & methods\
+	NeoPixel *strip // the strip I belong to\
+	int startPixel\
+	int numPixels\
+	int endPixel\
+\
+	long lastTime\
+	long diffTime\
+\
+	int currentEffect; // id of current effect\
+	void *effectUpdate() // pointer to current update or use switch\
+	\
+	// instance Updating\'85 \
+	// v1: use common instance function\
+	void update();\
+	// v2: use pointer to function \'97 nah use the switch(currFunc) method\
+	void *updateFunction()\
+\
+	int currSpeed;\
+\
+	void setWipeEfx(int color, speed);\
+	// wipe variables\
+	int wipe_color;\
+	int wipe_speed;\
+	int wipe_cursor;\
+\
+	void setPongEfx();\
+	void setRainbowEfx();\
+\}\
+\
+and the definition\
+classMethod void updateTime()\
+\{\
+	stripChanged = FALSE;\
+	currTime = millis();\
+\}\
+\
+	void update() \
+	\{\
+		// diffTime = currTime-lastTime;\
+		if (currSpeed >  (currTime-lastTime))  return;\
+		stripChanged = TRUE;\
+\
+		switch(currentEffect)\{\
+			case PONG_EFX: pong_update(); break;\
+			case WIPE_EFX: wipe_update(); break;\
+		\}\
+	\}\
+\
+	// v2: use pointer to function \'97 nah use the switch(currFunc) method\
+	void *updateFunc();\
+	void updateUsingFunc()\
+	\{ \
+		if (updateFunc)\
+			*updateFunc();\
+	\}\
+	\
+\
+void setWipeEfx(int color, int wipeSpeed)\
+\{\
+	// do we need to do anything to current Effect?\
+	// nah\
+	currentEfx = WIPE_EFX;\
+	wipe_cursor = 0;\
+	currSpeed = wipeSpeed	\
+\}\
+\
+\
+}
